@@ -37,7 +37,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Sidebar } from "lucide-react"
+import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, CirclePlus} from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
@@ -1375,7 +1375,6 @@ export default function MakeVisitPage() {
             <Button 
               type="submit"
               className="flex items-center justify-center gap-[8px] mt-[4px] mb-[40px] w-full h-[48px] rounded-[8px] bg-[#0068FA] font-medium text-[16px] text-[#FEFEFE] leading-[24px]"
-              onClick={() => console.log(form.formState.errors)}
             >
               Dalej
               <ChevronRight size={16} color="#FEFEFE"/>
