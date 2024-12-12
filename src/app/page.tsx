@@ -1,5 +1,6 @@
 import BreadcrumbsConstructor from "@/components/BreadcrumbsConstructor";
 import PagesTitle from "@/components/PagesTitle";
+import { Settings } from "lucide-react";
 
 export default async function Home() {
   return (
@@ -7,8 +8,12 @@ export default async function Home() {
       <BreadcrumbsConstructor />
       <PagesTitle />
 
-      <div className="flex justify-between mt-[40px] px-[5px] h-max w-full bg-[#FEFEFE] rounded-[8px]">
-        
+      <div className="flex items-center justify-start mt-[40px] p-[20px] h-[80px] w-full bg-[#FEFEFE] rounded-[8px]">
+        <span className="flex">
+          Przepraszamy, ale strona jest w naprawie 
+          &nbsp;
+          <Settings size={24} color="#242628"/>
+        </span>
       </div>
     </>
   )

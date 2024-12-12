@@ -35,11 +35,11 @@ const Navigation = () => {
       >
         {/* fix buttons tab */}
         <ButtonTopNav
-          additionalClasses="w-[182px] border border-[#FF3414]"
+          additionalClasses="w-[182px] border border-[#FF3414] transition-all duration-300 hover:opacity-70"
         >
           <Link
             href={'/support'}
-            className="flex gap-[8px] items-center "
+            className="flex w-full h-full gap-[8px] items-center "
           >
             <Bug size={16} color="#D61C00" />
             <p
@@ -51,11 +51,11 @@ const Navigation = () => {
         </ButtonTopNav>
 
         <ButtonTopNav
-          additionalClasses="w-[176px] bg-[#0068FA]"
+          additionalClasses="w-[176px] bg-[#0068FA] transition-all duration-300 hover:opacity-70"
         >
           <Link
             href={'/wizyty-domowe/umawianie-wizyty'}
-            className="flex gap-[8px] items-center "
+            className="flex w-full h-full  gap-[8px] items-center "
           >
             <CalendarPlus2 size={16} color="#FEFEFE" />
             <p

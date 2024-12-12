@@ -90,3 +90,19 @@ function checkDate(d: number, m: number,y: number) {
 
   return dt.date() === d && dt.month() === m && dt.year() === y;
 }
+
+export function scrollToId(id: string | null) {
+  if (!id) {
+    return;
+  }
+
+  const element = document.getElementById(id);
+
+  if (element) {
+
+    element.scrollIntoView({ 
+      block: 'center',
+      behavior: 'smooth' 
+    })
+  }
+}

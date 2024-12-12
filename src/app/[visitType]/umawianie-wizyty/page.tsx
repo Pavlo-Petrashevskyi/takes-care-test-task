@@ -1,7 +1,7 @@
 import MakeVisitPage from "@/pages/MakeVisitPage";
 
-export default function Page() {
+export default async function Page() {
   return (
-    <MakeVisitPage/>
+    <MakeVisitPage />
   )
 }

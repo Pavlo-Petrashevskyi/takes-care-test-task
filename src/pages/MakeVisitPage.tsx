@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
+import * as React from "react"
+import classNames from "classnames"
 import BreadcrumbsConstructor from "@/components/BreadcrumbsConstructor"
 import PagesTitle from "@/components/PagesTitle"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -34,31 +36,59 @@ import {
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, CirclePlus } from "lucide-react"
-import classNames from 'classnames';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TabsContent } from "@/components/ui/tabs"
+import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Sidebar } from "lucide-react"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
-import { cn, countArrayOfHoursForFromHourField, countArrayOfHoursForToHourField, countDateOfBirthUsingPesel, isValidPesel } from "@/lib/utils"
+import { cn, countArrayOfHoursForFromHourField, countArrayOfHoursForToHourField, countDateOfBirthUsingPesel, isValidPesel, scrollToId } from "@/lib/utils"
 import { useEffect, useState } from 'react';
 import { DropdownProps } from "react-day-picker"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { BASE_URL } from "@/api/api"
-import * as React from "react"
 import { usePathname } from "next/navigation";
 import moment from 'moment';
 import { MultiSelect } from "@/components/MultiSelectComponent"
+import { useToast } from "@/hooks/use-toast"
+import { Toaster } from "@/components/ui/toaster"
+import { VisitData } from "@/types/visitData"
+import { BASE_URL } from "@/api/api"
+import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarSeparator } from "@/components/ui/sidebar"
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@radix-ui/react-collapsible"
+import RightSidebarWrap from "@/components/RightSidebarWrap"
 
-export type VisitData = {
-  visitTypeFromServer: { path: string, defaultValue: string }[],
-  specializationFromServer: string[],
-  visitTopicsFromServer: string[],
-  visitLanguagesFromServer: string[],
-  countriesLanguagesFromServer: string[],
-  symptomsLanguagesFromServer: string[],
-}
+type controlType = Control<{
+  visitNumber: string;
+  visitType: string;
+  specialization: string;
+  dateOfVisit: Date;
+  topicOfVisit: string;
+  langOfVisit: string;
+  AgeIsAdultPatientI: boolean;
+  nameOfPatientI: string;
+  surnameOfPatientI: string;
+  documentPatientI: string;
+  peselPatientI: string;
+  dateOfBirthPatientI: Date;
+  houseStreetOfPatientI: string;
+  homeCountryOfPatientI: string;
+  showHoursOfVisit?: boolean;
+  hourFrom?: string;
+  hourTo?: string;
+  houseNumberOfPatientI: string;
+  customErrorPeselPatientI: string;
+  symptomsOfPatientI?: string[];
+  addVisitAdress?: boolean;
+  visitAdressCountry?: string;
+  visitAdressStreet?: string;
+  visitAdressNumberOfHouse?: string;
+  additionalInformation?: string;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+}, any>
+
+type nameType = "visitNumber" | "visitType" | "specialization" | "dateOfVisit" | "topicOfVisit" | "langOfVisit" | "AgeIsAdultPatientI" 
+| "nameOfPatientI" | "surnameOfPatientI" | "documentPatientI" | "peselPatientI" | "dateOfBirthPatientI" 
+| "homeCountryOfPatientI" | "houseStreetOfPatientI" | "houseNumberOfPatientI" | "visitAdressCountry" 
+| "visitAdressStreet" | "visitAdressNumberOfHouse" | "addVisitAdress" | "symptomsOfPatientI" | "customErrorPeselPatientI"
 
 export type FormType = typeof FormSchema;
 
@@ -77,7 +107,7 @@ const FormSchema = z.object({
   dateOfVisit: z.date({
     required_error: 'Prosimy wybrać datę wizyty',
   }),
-  showHoursOfVisit: z.boolean().default(false).optional(),
+  showHoursOfVisit: z.boolean().optional(),
   hourFrom: z.string().optional(),
   hourTo: z.string().optional(),
   topicOfVisit: z.string({
@@ -87,90 +117,216 @@ const FormSchema = z.object({
   langOfVisit: z.string({
     required_error: 'Prosimy wybrać język wizyty'
   }),
-  patient1AgeIsAdult: z.boolean(),
-  nameOfPatient1: z.string({
+  AgeIsAdultPatientI: z.boolean(),
+  nameOfPatientI: z.string({
     required_error: 'Prosimy wpisać imię'
   }),
-  surnameOfPatient1: z.string({
+  surnameOfPatientI: z.string({
     required_error: 'Prosimy wpisać nazwisko'
   }),
-  documentPatient1: z.string(),
-  peselPatient1: z.string({
+  documentPatientI: z.string(),
+  peselPatientI: z.string({
     required_error: 'Prosimy wpisać PESEL'
   }),
-  dateOfBirthPatient1: z.date({
+  dateOfBirthPatientI: z.date({
     required_error: 'Prosimy wybrać datę urodzenia'
   }),
-  countryOfPatient1: z.string({
+  homeCountryOfPatientI: z.string({
     required_error: 'Prosimy wybrać kraj zamieszkania',
   }),
-  streetOfPatient1: z.string({
+  houseStreetOfPatientI: z.string({
     required_error: 'Prosimy wpisać adres zamieszkania',
   }),
-  houseNumberOfPatient1: z.string({
+  houseNumberOfPatientI: z.string({
     required_error: 'Prosimy wpisać numer budynku zamieszkania'
   }),
-  symptomsOfPatient1: z.string().array().optional(),
-  addVisitAdress: z.boolean().default(false),
+  customErrorPeselPatientI: z.string(),
+  symptomsOfPatientI: z.string().array().optional(),
+  addVisitAdress: z.boolean().optional(),
   visitAdressCountry: z.string().optional(),
   visitAdressStreet: z.string().optional(),
   visitAdressNumberOfHouse: z.string().optional(),
 })
 
-const romanNumbers = ['I','II','III','IV','V','VI'];
-
-function getRomanNumbers(amountOfPatients: number) {
-  return Array.from({ length: amountOfPatients}).map((_, i) => romanNumbers[i])
-}
-
 export default function MakeVisitPage() {
+  const [patientsAmount, setPatientsAmount] = useState(1)
+  const { toast } = useToast()
   const pathname = usePathname();
   const form = useForm<z.infer<FormType>>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(
+      FormSchema
+        .extend(patientsAmount >= 2 
+          ? {
+              AgeIsAdultPatientII: z.boolean(),
+              nameOfPatientII: z.string({
+                required_error: 'Prosimy wpisać imię'
+              }),
+              surnameOfPatientII: z.string({
+                required_error: 'Prosimy wpisać nazwisko'
+              }),
+              documentPatientII: z.string(),
+              peselPatientII: z.string({
+                required_error: 'Prosimy wpisać PESEL'
+              }),
+              dateOfBirthPatientII: z.date({
+                required_error: 'Prosimy wybrać datę urodzenia'
+              }),
+              customErrorPeselPatientII: z.string(),
+            }
+          : {}
+        )
+        .extend(patientsAmount >= 3 
+          ? {
+              AgeIsAdultPatientIII: z.boolean(),
+              nameOfPatientIII: z.string({
+                required_error: 'Prosimy wpisać imię'
+              }),
+              surnameOfPatientIII: z.string({
+                required_error: 'Prosimy wpisać nazwisko'
+              }),
+              documentPatientIII: z.string(),
+              peselPatientIII: z.string({
+                required_error: 'Prosimy wpisać PESEL'
+              }),
+              dateOfBirthPatientIII: z.date({
+                required_error: 'Prosimy wybrać datę urodzenia'
+              }),
+              customErrorPeselPatientIII: z.string(),
+            }
+          : {}
+        )
+        .extend(patientsAmount >= 4 
+          ? {
+              AgeIsAdultPatientIV: z.boolean(),
+              nameOfPatientIV: z.string({
+                required_error: 'Prosimy wpisać imię'
+              }),
+              surnameOfPatientIV: z.string({
+                required_error: 'Prosimy wpisać nazwisko'
+              }),
+              documentPatientIV: z.string(),
+              peselPatientIV: z.string({
+                required_error: 'Prosimy wpisać PESEL'
+              }),
+              dateOfBirthPatientIV: z.date({
+                required_error: 'Prosimy wybrać datę urodzenia'
+              }),
+              customErrorPeselPatientIV: z.string(),
+            }
+          : {}
+        )
+        .extend(patientsAmount >= 5 
+          ? {
+              AgeIsAdultPatientV: z.boolean(),
+              nameOfPatientV: z.string({
+                required_error: 'Prosimy wpisać imię'
+              }),
+              surnameOfPatientV: z.string({
+                required_error: 'Prosimy wpisać nazwisko'
+              }),
+              documentPatientV: z.string(),
+              peselPatientV: z.string({
+                required_error: 'Prosimy wpisać PESEL'
+              }),
+              dateOfBirthPatientV: z.date({
+                required_error: 'Prosimy wybrać datę urodzenia'
+              }),
+              customErrorPeselPatientV: z.string(),
+            }
+          : {}
+        )
+        .extend(patientsAmount >= 6 
+          ? {
+              AgeIsAdultPatientVI: z.boolean(),
+              nameOfPatientVI: z.string({
+                required_error: 'Prosimy wpisać imię'
+              }),
+              surnameOfPatientVI: z.string({
+                required_error: 'Prosimy wpisać nazwisko'
+              }),
+              documentPatientVI: z.string(),
+              peselPatientVI: z.string({
+                required_error: 'Prosimy wpisać PESEL'
+              }),
+              dateOfBirthPatientVI: z.date({
+                required_error: 'Prosimy wybrać datę urodzenia'
+              }),
+              customErrorPeselPatientVI: z.string(),
+            }
+          : {}
+        )
+    ),
     defaultValues: {
       visitType: 'Wizyta domowa',
-      patient1AgeIsAdult: true,
-      documentPatient1: 'pesel',
-    }
+      AgeIsAdultPatientI: true,
+      AgeIsAdultPatientII: true,
+      AgeIsAdultPatientIII: true,
+      AgeIsAdultPatientIV: true,
+      AgeIsAdultPatientV: true,
+      AgeIsAdultPatientVI: true,
+      documentPatientI: 'pesel',
+      documentPatientII: 'pesel',
+      documentPatientIII: 'pesel',
+      documentPatientIV: 'pesel',
+      documentPatientV: 'pesel',
+      documentPatientVI: 'pesel',
+    },
+    criteriaMode: 'all',
   });
-  const [patientsAmount, setPatientsAmount] = useState(1)
-  const [patientsArray, setPatientsArray] = useState<string[]>(getRomanNumbers(patientsAmount))
   const [visitData, setVisitData] = useState<VisitData>()
   const [countedFromHourArray, setCountedFromHourArray] = useState<number[]>(countArrayOfHoursForFromHourField(form.getValues('dateOfVisit')));
-  const [countedtoHourArray, setCountedToHourArray] = useState<number[]>(countArrayOfHoursForToHourField(form.getValues('hourFrom')));
- 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  const [countedToHourArray, setCountedToHourArray] = useState<number[]>(countArrayOfHoursForToHourField(form.getValues('hourFrom')));
+  const romanNumbers = React.useMemo(() => ['I','II','III','IV','V','VI'], []);
+  const patientsNumberRomanArray = React.useMemo(() => Array.from({length: patientsAmount}).map((_, i) => romanNumbers[i]), [patientsAmount])
+
+  function onSubmit(data: z.infer<FormType>) {
+    toast({
+      title: "You submitted the following values:",
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(data, null, 3)}</code>
+        </pre>
+      ),
+    })
     console.log(data);
   }
 
-  function validatePeselAndShowErrorMessages(e:  React.ChangeEvent<HTMLInputElement>) {
-    form.clearErrors('peselPatient1');
+  function validatePeselAndShowErrorMessages(e:  React.ChangeEvent<HTMLInputElement>, errorField: nameType) {
+    form.clearErrors(errorField);
+    form.setValue(errorField, undefined);
+    form.clearErrors();
 
     if (e.target.value.length === 0) {
-      return;
+      return form.setError(errorField, {
+        types: {
+          message: 'Prosimy wpisać PESEL',
+        }
+      })
     }
     
     if (e.target.value.length < 11 
         || e.target.value.length > 11 
-        || !e.target.value.match(new RegExp(/^\d{11}$/))
+        || !RegExp(new RegExp(/^\d{11}$/)).exec(e.target.value)
       ) {
-      return form.setError('peselPatient1', {
-        type: 'validPeselNumber',
-        message: 'PESEL musi składać się z 11 cyfr',
+      return form.setError(errorField, {
+        types: {    
+          message: 'PESEL musi składać się z 11 cyfr',
+        }
       })
     }
 
     if (!isValidPesel(e.target.value)) {
-      return form.setError('peselPatient1', {
-        type: 'validPesel',
-        message: 'PESEL nie prawidłowy',
+      return form.setError(errorField, {
+        types: {    
+          message: 'PESEL nie prawidłowy',
+        }
       })
     }
   }
 
-  useEffect(() => {
+  useEffect(() => { 
     async function fetchVisitData() {
-      const res = await fetch(`${BASE_URL}/dataVisit`, { method: 'GET' });
+      const res = await fetch(`${BASE_URL}/visitData`, { method: 'GET' });
       const data: VisitData = await res.json();
       setVisitData(data)
     }
@@ -180,7 +336,7 @@ export default function MakeVisitPage() {
 
   useEffect(() => {
     if (visitData && visitData.visitTypeFromServer.length > 0 && pathname) {
-      form.setValue('visitType', visitData?.visitTypeFromServer.find(({ path }) => pathname.includes(path))?.defaultValue || 'Wizyta domowa')
+      form.setValue('visitType', visitData?.visitTypeFromServer.find(({ path }) => pathname.includes(path))?.defaultValue ?? 'Wizyta domowa')
     }
   }, [form, pathname, visitData]);
 
@@ -192,39 +348,283 @@ export default function MakeVisitPage() {
     setCountedToHourArray(countArrayOfHoursForToHourField(form.watch('hourFrom')));
   }, [form.watch('hourFrom')]);
 
+  //#region firstPeselAndDate
   useEffect(() => {
-    const peselValue = form.watch('peselPatient1');
+    const peselValue = form.watch('peselPatientI');
     let birthDate;
 
     if (isValidPesel(peselValue)) {
       birthDate = countDateOfBirthUsingPesel(peselValue);
+      form.setValue('customErrorPeselPatientI', 'OK');
     }
 
     if (birthDate) {
-      form.clearErrors('dateOfBirthPatient1');
-      form.setValue('dateOfBirthPatient1', birthDate);
+      form.clearErrors('dateOfBirthPatientI');
+      form.clearErrors('customErrorPeselPatientI');
+      form.setValue('dateOfBirthPatientI', birthDate);
     }
-  }, [form.watch('peselPatient1')])
+  }, [form.watch('peselPatientI')])
 
   useEffect(() => {
-    const birthDate = form.watch('dateOfBirthPatient1');
+    const birthDate = form.watch('dateOfBirthPatientI');
 
     if (!birthDate || !moment(birthDate).isValid()) {
       return;
     }
 
     if (moment(birthDate).isAfter(moment().subtract(18, 'years'), 'day')) {
-      form.setValue('patient1AgeIsAdult', false);
+      form.setValue('AgeIsAdultPatientI', false);
     }
 
     if (moment(birthDate).isBefore(moment().subtract(18, 'years').add(1, 'day'), 'day')) {
-      form.setValue('patient1AgeIsAdult', true);
+      form.setValue('AgeIsAdultPatientI', true);
     }
-  }, [form.watch('dateOfBirthPatient1')])
+  }, [form.watch('dateOfBirthPatientI')]);
+  //#endregion 
+
+  //#region secondPeselAndDate
+  useEffect(() => {
+    const peselValue = form.watch('peselPatientII');
+    let birthDate;
+
+    if (isValidPesel(peselValue)) {
+      birthDate = countDateOfBirthUsingPesel(peselValue);
+      form.setValue('customErrorPeselPatientII', 'OK');
+    }
+
+    if (birthDate) {
+      form.clearErrors('dateOfBirthPatientII');
+      form.clearErrors('customErrorPeselPatientII');
+      form.setValue('dateOfBirthPatientII', birthDate);
+    }
+  }, [form.watch('peselPatientII')])
 
   useEffect(() => {
-    setPatientsArray(getRomanNumbers(patientsAmount))
-  }, [patientsAmount]);
+    const birthDate = form.watch('dateOfBirthPatientII');
+
+    if (!birthDate || !moment(birthDate).isValid()) {
+      return;
+    }
+
+    if (moment(birthDate).isAfter(moment().subtract(18, 'years'), 'day')) {
+      form.setValue('AgeIsAdultPatientII', false);
+    }
+
+    if (moment(birthDate).isBefore(moment().subtract(18, 'years').add(1, 'day'), 'day')) {
+      form.setValue('AgeIsAdultPatientII', true);
+    }
+  }, [form.watch('dateOfBirthPatientII')]);
+  //#endregion 
+
+  //#region thirdPeselAndDate
+  useEffect(() => {
+    const peselValue = form.watch('peselPatientIII');
+    let birthDate;
+
+    if (isValidPesel(peselValue)) {
+      birthDate = countDateOfBirthUsingPesel(peselValue);
+      form.setValue('customErrorPeselPatientIII', 'OK');
+    }
+
+    if (birthDate) {
+      form.clearErrors('dateOfBirthPatientIII');
+      form.clearErrors('customErrorPeselPatientIII');
+      form.setValue('dateOfBirthPatientIII', birthDate);
+    }
+  }, [form.watch('peselPatientIII')])
+
+  useEffect(() => {
+    const birthDate = form.watch('dateOfBirthPatientIII');
+
+    if (!birthDate || !moment(birthDate).isValid()) {
+      return;
+    }
+
+    if (moment(birthDate).isAfter(moment().subtract(18, 'years'), 'day')) {
+      form.setValue('AgeIsAdultPatientIII', false);
+    }
+
+    if (moment(birthDate).isBefore(moment().subtract(18, 'years').add(1, 'day'), 'day')) {
+      form.setValue('AgeIsAdultPatientIII', true);
+    }
+  }, [form.watch('dateOfBirthPatientIII')]);
+  //#endregion
+
+  //#region fourthPeselAndDate
+  useEffect(() => {
+    const peselValue = form.watch('peselPatientIV');
+    let birthDate;
+
+    if (isValidPesel(peselValue)) {
+      birthDate = countDateOfBirthUsingPesel(peselValue);
+      form.setValue('customErrorPeselPatientIV', 'OK');
+    }
+
+    if (birthDate) {
+      form.clearErrors('dateOfBirthPatientIV');
+      form.clearErrors('customErrorPeselPatientIV');
+      form.setValue('dateOfBirthPatientIV', birthDate);
+    }
+  }, [form.watch('peselPatientIV')])
+
+  useEffect(() => {
+    const birthDate = form.watch('dateOfBirthPatientIV');
+
+    if (!birthDate || !moment(birthDate).isValid()) {
+      return;
+    }
+
+    if (moment(birthDate).isAfter(moment().subtract(18, 'years'), 'day')) {
+      form.setValue('AgeIsAdultPatientIV', false);
+    }
+
+    if (moment(birthDate).isBefore(moment().subtract(18, 'years').add(1, 'day'), 'day')) {
+      form.setValue('AgeIsAdultPatientIV', true);
+    }
+  }, [form.watch('dateOfBirthPatientIV')]);
+  //#endregion
+
+  //#region fifthPeselAndDate
+  useEffect(() => {
+    const peselValue = form.watch('peselPatientV');
+    let birthDate;
+
+    if (isValidPesel(peselValue)) {
+      birthDate = countDateOfBirthUsingPesel(peselValue);
+      form.setValue('customErrorPeselPatientV', 'OK');
+    }
+
+    if (birthDate) {
+      form.clearErrors('dateOfBirthPatientV');
+      form.clearErrors('customErrorPeselPatientV');
+      form.setValue('dateOfBirthPatientV', birthDate);
+    }
+  }, [form.watch('peselPatientV')])
+
+  useEffect(() => {
+    const birthDate = form.watch('dateOfBirthPatientV');
+
+    if (!birthDate || !moment(birthDate).isValid()) {
+      return;
+    }
+
+    if (moment(birthDate).isAfter(moment().subtract(18, 'years'), 'day')) {
+      form.setValue('AgeIsAdultPatientV', false);
+    }
+
+    if (moment(birthDate).isBefore(moment().subtract(18, 'years').add(1, 'day'), 'day')) {
+      form.setValue('AgeIsAdultPatientV', true);
+    }
+  }, [form.watch('dateOfBirthPatientV')]);
+  //#endregion
+
+  //#region sixthPeselAndDate
+  useEffect(() => {
+    const peselValue = form.watch('peselPatientVI');
+    let birthDate;
+
+    if (isValidPesel(peselValue)) {
+      birthDate = countDateOfBirthUsingPesel(peselValue);
+      form.setValue('customErrorPeselPatientVI', 'OK');
+    }
+
+    if (birthDate) {
+      form.clearErrors('dateOfBirthPatientVI');
+      form.clearErrors('customErrorPeselPatientVI');
+      form.setValue('dateOfBirthPatientVI', birthDate);
+    }
+  }, [form.watch('peselPatientVI')])
+
+  useEffect(() => {
+    const birthDate = form.watch('dateOfBirthPatientVI');
+
+    if (!birthDate || !moment(birthDate).isValid()) {
+      return;
+    }
+
+    if (moment(birthDate).isAfter(moment().subtract(18, 'years'), 'day')) {
+      form.setValue('AgeIsAdultPatientVI', false);
+    }
+
+    if (moment(birthDate).isBefore(moment().subtract(18, 'years').add(1, 'day'), 'day')) {
+      form.setValue('AgeIsAdultPatientVI', true);
+    }
+  }, [form.watch('dateOfBirthPatientVI')]);
+  //#endregion
+
+  const sidebarRightInfo = React.useMemo(() => {
+    return [
+      {
+        title: 'Wizyta',
+        items: [
+          {
+            title: "Numer zgłoszenia",
+            href: 'visitNumber',
+          },
+          {
+            title: "Rodzaj wizyty",
+            href: 'visitType',
+          },
+          {
+            title: "Specjalizacja",
+            href: 'specialization',
+          },
+          {
+            title: "Data wizyty",
+            href: 'dateOfVisit',
+          },
+          {
+            title: "Temat",
+            href: 'topicOfVisit',
+          },
+          {
+            title: "Dodatkowe informacje",
+            href: 'additionalInformation',
+          },
+          {
+            title: "Język wizyty",
+            href: 'langOfVisit',
+          },
+          {
+            title: "Kod rabatowy",
+            href: null,
+          },
+        ]
+      },
+      ...patientsNumberRomanArray.map((romanNumber, i) => {
+        return {
+          title: (patientsNumberRomanArray.length > 1 ? `Pacjent ${romanNumber}` : 'Pacjent'),
+          items: [
+            i === 0 && {
+              title: "Kraj",
+              href: 'homeAdresPatient'
+            },
+            {
+              title: "Wiek pacjenta",
+              href: `AgeIsAdultPatient${romanNumber}`,
+            },
+            {
+              title: "Dane pacjenta",
+              href: `dataOfPatient${romanNumber}`,
+            },
+            {
+              title: "Objawy",
+              href: `symptomsOfPatient${romanNumber}`,
+            },
+            {
+              title: "Dokument",
+              href: `documentPatient${romanNumber}`,
+            },
+            i === 0 && {
+              title: "Dane adresowe",
+              href: 'homeAdresPatient',
+            },
+          ]
+        }
+      })
+    ]
+  }, [patientsNumberRomanArray])
+
 
   return (
     <div className="grid grid-cols-[715px_190px] gap-x-[20px]">
@@ -235,7 +635,11 @@ export default function MakeVisitPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-[20px] w-full mt-[24px]">
             <div className="flex flex-col gap-[24px] p-[40px] bg-[#FEFEFE] rounded-[4px]">
-              <FormLabel className="font-light text-[24px] text-[#112950] leading-[28.8px]">Wizyta</FormLabel>
+              <FormLabel 
+                className="font-light text-[24px] text-[#112950] leading-[28.8px]"
+              >
+                Wizyta
+              </FormLabel>
 
               {/* visitNumber */}
               <FormField
@@ -243,13 +647,19 @@ export default function MakeVisitPage() {
                 name="visitNumber"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-[8px] space-y-0">
-                    <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">Numer zgłoszenia</FormLabel>
-                    <Input 
-                      type="text" 
-                      className="m-0 pt-[8px] pb-[6px] px-[2px] border-0 border-b-2 rounded-none border-[#E4E5E7] focus-visible:ring-0 focus-visible:ring-transparent ring-offset-transparent font-normal text-[16px] leading-[24px] text-[#6D7178] active:text-[#6D7178] placeholder:text-[#6D7178]"
-                      placeholder="Wpisz numer zgłoszenia"
-                      {...field}
-                    />
+                    <FormLabel 
+                      id="visitNumber"
+                      className="font-bold text-[16px] text-[#112950] leading-[24px]"
+                    >
+                      Numer zgłoszenia
+                    </FormLabel>
+                      <Input 
+                        type="text" 
+                        className="m-0 pt-[8px] pb-[6px] px-[2px] border-0 border-b-2 rounded-none border-[#E4E5E7] focus-visible:ring-0 focus-visible:ring-transparent ring-offset-transparent font-normal text-[16px] leading-[24px] text-[#6D7178] active:text-[#6D7178] placeholder:text-[#6D7178]"
+                        placeholder="Wpisz numer zgłoszenia"
+                        defaultValue={field.value}
+                        onChange={field.onChange}
+                      />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -259,6 +669,7 @@ export default function MakeVisitPage() {
               <SearchInputWithDropdown
                 options={visitData?.visitTypeFromServer.map(type => type.defaultValue) || []}
                 control={form.control} 
+                id="visitType"
                 name={"visitType"} 
                 title={"Rodzaj wizyty"} 
                 inputMessage={"Prosimy wpisać rodzaj wizyty"} 
@@ -269,6 +680,7 @@ export default function MakeVisitPage() {
               <SearchInputWithDropdown
                 options={visitData?.specializationFromServer || []}
                 control={form.control} 
+                id="specialization"
                 name={"specialization"} 
                 title={"Specjalizacja"} 
                 inputMessage={"Prosimy wpisać spacjalizację"} 
@@ -280,8 +692,13 @@ export default function MakeVisitPage() {
                 control={form.control}
                 name="dateOfVisit"
                 render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">Data wizyty</FormLabel>
+                  <FormItem className="w-full" >
+                    <FormLabel 
+                      className="font-bold text-[16px] text-[#112950] leading-[24px]"
+                      id="dateOfVisit"
+                    >
+                      Data wizyty
+                    </FormLabel>
                     <FormControl>
                       <Popover>
                         <PopoverTrigger asChild className="w-full">
@@ -344,7 +761,6 @@ export default function MakeVisitPage() {
               />
 
               {/* hourFrom and hourTo */}
-              {/* make a custom datepicker using react datepicker and shadCN UI */}
               {form.watch('showHoursOfVisit') && (
                 <div className="flex flex-col gap-[8px]">
                   <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">Godzina</FormLabel>
@@ -355,7 +771,7 @@ export default function MakeVisitPage() {
                       name="hourFrom"
                       render={({ field }) => (
                         <FormItem className="basis-auto w-full">
-                          <Select 
+                          <Select
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
                           >
@@ -398,7 +814,7 @@ export default function MakeVisitPage() {
                       name="hourTo"
                       render={({ field }) => (
                         <FormItem className="basis-auto w-full">
-                          <Select 
+                          <Select
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
                           >
@@ -408,8 +824,8 @@ export default function MakeVisitPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {countedtoHourArray.length > 0
-                                ? countedtoHourArray.map(hour => (
+                              {countedToHourArray.length > 0
+                                ? countedToHourArray.map(hour => (
                                   <SelectItem 
                                     key={`${hour}-hour`}
                                     value={`${hour}`}
@@ -442,6 +858,7 @@ export default function MakeVisitPage() {
               <SearchInputWithDropdown
                 options={visitData?.visitTopicsFromServer || []}
                 control={form.control} 
+                id="topicOfVisit"
                 name={"topicOfVisit"} 
                 title={"Temat"} 
                 inputMessage={"Prosimy wpisać temat wizyty"} 
@@ -453,8 +870,13 @@ export default function MakeVisitPage() {
                 control={form.control}
                 name="additionalInformation"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col gap-[8px] space-y-0">
-                    <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">
+                  <FormItem 
+                    className="flex flex-col gap-[8px] space-y-0"
+                  >
+                    <FormLabel 
+                      className="font-bold text-[16px] text-[#112950] leading-[24px]"
+                      id="additionalInformation"
+                    >
                       Dodarkowe informacje
                       <span className="font-normal">&nbsp;(opcjonalnie)</span>
                     </FormLabel>
@@ -462,7 +884,8 @@ export default function MakeVisitPage() {
                       <Textarea
                         placeholder="Opisz problem"
                         className="resize-none py-[8px] px-[12px] h-[134px] border-0 rounded-[6px] bg-[#F7F7F8] font-normal text-[12px] leading-[18px] text-[#242628] focus-visible:ring-0 focus-visible:ring-offset-0"
-                        {...field}
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                   </FormItem>
@@ -472,7 +895,8 @@ export default function MakeVisitPage() {
               {/* langOfVisit */}
               <SearchInputWithDropdown
                 options={visitData?.visitLanguagesFromServer || []}
-                control={form.control} 
+                control={form.control}
+                id="langOfVisit"
                 name={"langOfVisit"} 
                 title={"Język wizyty"} 
                 inputMessage={"Prosimy wpisać język wizyty"} 
@@ -480,22 +904,28 @@ export default function MakeVisitPage() {
               />
             </div>
 
-            {patientsArray.map((patientRomanNumber, i) => (
+            {patientsNumberRomanArray.map((number, i) => (
               <div 
                 className="flex flex-col gap-[24px] p-[40px] bg-[#FEFEFE] rounded-[4px]"
-                key={`patient-${patientRomanNumber}`}
+                key={`patient${number}`}
               >
                 <FormLabel className="font-light text-[24px] text-[#112950] leading-[28.8px]">
-                  {patientsArray.length > 1 ? `Pacjent ${patientRomanNumber}` : 'Patient'}
+                  Pacjent
                 </FormLabel>
 
-                {/* patient1Age */}
                 <FormField
                   control={form.control}
-                  name="patient1AgeIsAdult"
+                  name={(`AgeIsAdultPatient${number}`) as nameType}
                   render={({ field }) => (
-                    <FormItem className="flex flex-col gap-[8px] space-y-0">
-                      <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">Wiek Pacjenta</FormLabel>
+                    <FormItem 
+                      className="flex flex-col gap-[8px] space-y-0"
+                    >
+                      <FormLabel 
+                        className="font-bold text-[16px] text-[#112950] leading-[24px]"
+                        id={`AgeIsAdultPatient${number}`}
+                      >
+                        Wiek Pacjenta
+                      </FormLabel>
                       <FormControl {...field}>
                         <div className="flex gap-[16px]">
                           <Button
@@ -525,18 +955,26 @@ export default function MakeVisitPage() {
                   )}
                 />
 
-                {/* Name and Surname */}
                 <div className="flex flex-col gap-[8px]">
-                  <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">Dane pacjenta</FormLabel>
+                  <FormLabel 
+                    className="font-bold text-[16px] text-[#112950] leading-[24px]"
+                    id={`dataOfPatient${number}`}
+                  >
+                    Dane pacjenta
+                  </FormLabel>
 
                   <div className="flex gap-[16px]">
                     <FormField 
                       control={form.control}
-                      name="nameOfPatient1"
+                      name={(`nameOfPatient${number}`) as nameType}
                       render={({ field }) => (
-                        <FormItem className="basis-auto w-full">
-                          <FormControl {...field}>
+                        <FormItem 
+                          className="basis-auto w-full"
+                        >
+                          <FormControl>
                             <Input 
+                              defaultValue={(field.value) as string | number | readonly string[] | undefined}
+                              onChange={field.onChange}
                               placeholder="Imię"
                               className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus:ring-0 focus:ring-transparent text-[#6D7178] focus-visible:ring-0 focus-visible:ring-offset-0"
                             />
@@ -547,11 +985,16 @@ export default function MakeVisitPage() {
                     />
                     <FormField 
                       control={form.control}
-                      name="surnameOfPatient1"
+                      name={(`surnameOfPatient${number}`) as nameType}
                       render={({ field }) => (
-                        <FormItem className="basis-auto w-full">
-                          <FormControl {...field}>
+                        <FormItem 
+                          className="basis-auto w-full"
+                          id={`surnameOfPatient${number}`}
+                        >
+                          <FormControl>
                             <Input 
+                              defaultValue={(field.value) as string | number | readonly string[] | undefined}
+                              onChange={field.onChange}
                               placeholder="Nazwisko"
                               className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus:ring-0 focus:ring-transparent text-[#6D7178] focus-visible:ring-0 focus-visible:ring-offset-0"
                             />
@@ -563,51 +1006,52 @@ export default function MakeVisitPage() {
                   </div>
                 </div>
 
-                {/* sympomtsPatient1 | multiselect */}
-                {/* <SearchInputWithDropdown
-                  options={visitData?.symptomsLanguagesFromServer || []}
-                  control={form.control}
-                  inputMessage="Prosimy wybrać objawy, jeżeli są takie"
-                  noFoundAnswer="Nie odnaleziono takich objawów"
-                  name="symptomsOfPatient1"
-                  title="Objawy"
-                  titleOptional="(opcjonalnie)"
-                /> */}
-
-                {visitData && visitData?.symptomsLanguagesFromServer && (
+                {visitData?.symptomsFromServer && (
                   <FormField 
-                  control={form.control}
-                  name="symptomsOfPatient1"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-[8px] space-y-0">
-                      <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">
-                        Objawy
-                        <span className="font-normal">&nbsp;(opcjonalnie)</span>
-                      </FormLabel>
-                      <MultiSelect
-                        {...field}
-                        onValueChange={field.onChange}
-                        options={visitData?.symptomsLanguagesFromServer.map(symptom => ({ label: symptom, value: symptom }))}
-                        placeholder="Wybierz z listy" 
-                        className="w-full px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none justify-between bg-transparent 
-                              hover:bg-transparent focus-visible:ring-0 focus-visible:ring-transparent font-normal text-[16px] leading-[24px] text-[#6D7178]"
-                        inputMessage="Prosimy wybrać objawy, jeżeli są takie"
-                        noFoundMessage="Nie odnaleziono takich objawów"
-                        clearButtonMessage="Wyczyść"
-                        closeButtonMessage="Zamknąć"
-                        selectAllButtonMessage="Wybierz wszystko"
-                      />
-                    </FormItem>
-                  )}
-                />
+                    control={form.control}
+                    name={(`symptomsOfPatient${number}`) as nameType}
+                    render={({ field }) => (
+                      <FormItem 
+                        className="flex flex-col gap-[8px] space-y-0"
+                      >
+                        <FormLabel 
+                          className="font-bold text-[16px] text-[#112950] leading-[24px]"
+                          id={`symptomsOfPatient${number}`}
+                        >
+                          Objawy
+                          <span className="font-normal">&nbsp;(opcjonalnie)</span>
+                        </FormLabel>
+
+                        <MultiSelect
+                          {...field}
+                          value={(field.value) as string | number | readonly string[] | undefined}
+                          onValueChange={field.onChange}
+                          options={visitData?.symptomsFromServer.map(symptom => ({ label: symptom, value: symptom }))}
+                          placeholder="Wybierz z listy" 
+                          className="w-full px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none justify-between bg-transparent 
+                                hover:bg-transparent focus-visible:ring-0 focus-visible:ring-transparent font-normal text-[16px] leading-[24px] text-[#6D7178]"
+                          inputMessage="Prosimy wybrać objawy, jeżeli są takie"
+                          noFoundMessage="Nie odnaleziono takich objawów"
+                          clearButtonMessage="Wyczyść"
+                          closeButtonMessage="Zamknąć"
+                          selectAllButtonMessage="Wybierz wszystko"
+                        />
+                      </FormItem>
+                    )}
+                  />
                 )}
 
-                {/* documentPatient1 */}
                 <div className="flex flex-col gap-[8px]">
-                  <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">Dokument</FormLabel>
+                  <FormLabel 
+                    className="font-bold text-[16px] text-[#112950] leading-[24px]"
+                    id={`documentPatient${number}`}
+                  >
+                    Dokument
+                  </FormLabel>
+
                   <FormField
                     control={form.control} 
-                    name="documentPatient1"
+                    name={(`documentPatient${number}`) as nameType}
                     render={({ field }) => (
                       <Tabs 
                         defaultValue={field.value} 
@@ -641,23 +1085,28 @@ export default function MakeVisitPage() {
                         >
                           <FormField
                             control={form.control}
-                            name="peselPatient1"
+                            name={(`peselPatient${number}`) as nameType}
                             render={({ field }) => (
                               <>
                                 <FormItem className="relative">
                                   <FormControl>
                                     <Input 
                                       placeholder="Wpisz numer PESEL"
-                                      value={field.value}
+                                      defaultValue={(field.value) as string | number | readonly string[] | undefined}
                                       className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus-visible:ring-0 focus-visible:ring-transparent"
                                       onChange={(e) => {
-                                        validatePeselAndShowErrorMessages(e)
+                                        validatePeselAndShowErrorMessages(e, `customErrorPeselPatient${number}` as nameType)
                                         field.onChange(e);
                                       }}
                                     />
                                   </FormControl>
                                 </FormItem>
                                 <FormMessage />
+                                {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types && (
+                                  <span className="text-sm font-medium text-red-500 dark:text-red-900">
+                                    {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types?.message}
+                                  </span>
+                                )}
                               </>
                             )}
                           />
@@ -668,27 +1117,32 @@ export default function MakeVisitPage() {
                         >
                           <FormField
                               control={form.control}
-                              name="peselPatient1"
+                              name={(`peselPatient${number}`) as nameType}
                               render={({ field }) => (
                                 <FormItem className="basis-auto w-full">
                                   <FormControl>
                                     <Input 
                                       placeholder="Wpisz numer PESEL"
-                                      value={field.value}
+                                      defaultValue={(field.value) as string | number | readonly string[] | undefined}
                                       className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus-visible:ring-0 focus-visible:ring-transparent"
                                       onChange={(e) => {
-                                        validatePeselAndShowErrorMessages(e)
+                                        validatePeselAndShowErrorMessages(e, `customErrorPeselPatient${number}` as nameType)
                                         field.onChange(e)
                                       }}
                                     />
                                   </FormControl>
                                   <FormMessage />
+                                  {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types && (
+                                    <span className="text-sm font-medium text-red-500 dark:text-red-900">
+                                      {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types?.message}
+                                    </span>
+                                  )}
                                 </FormItem>
                               )}
                             />
                             <FormField
                               control={form.control}
-                              name="dateOfBirthPatient1"
+                              name={(`dateOfBirthPatient${number}`) as nameType}
                               render={({ field }) => (
                                 <FormItem className="basis-auto w-full">
                                   <FormControl>
@@ -699,7 +1153,7 @@ export default function MakeVisitPage() {
                                             type="button"
                                             className="w-full px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none justify-between bg-transparent 
                                             hover:bg-transparent focus-visible:ring-0 focus-visible:ring-transparent font-normal text-[16px] leading-[24px] text-[#6D7178]">
-                                            {field.value ? format(field.value, "PPP") : (
+                                            {field.value ? format((field.value) as string | number | Date, "PPP") : (
                                               <span>Data urodzenia</span>
                                             )}
                                             <CalendarDays 
@@ -713,7 +1167,6 @@ export default function MakeVisitPage() {
                                       <PopoverContent>
                                         <Calendar 
                                           mode="single"
-                                          selected={field.value}
                                           onSelect={field.onChange}
                                           className="bg-[#FEFEFE] p-0 border-[#112950] rounded-[6px]"
                                           classNames={{
@@ -745,7 +1198,7 @@ export default function MakeVisitPage() {
                                             ...classNames,
                                           }}
                                           components={{
-                                            CaptionLabel: () => (<></>),
+                                            CaptionLabel: () => <></>,
                                             Dropdown: ({ value, onChange, children, ...props }: DropdownProps) => {
                                               const options = React.Children.toArray(children) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[]
                                               const selected = options.find((child) => child.props.value === value)
@@ -800,16 +1253,21 @@ export default function MakeVisitPage() {
                   />
                 </div>
 
-                {/* dane adresowe */}
                 {!i && (
                   <>
                     <div className="flex flex-col gap-[8px]">
-                      <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">Dane adresowe</FormLabel>
+                      <FormLabel 
+                        className="font-bold text-[16px] text-[#112950] leading-[24px]"
+                        id="homeAdresPatient"
+                      >
+                        Dane adresowe
+                      </FormLabel>
 
                       <SearchInputWithDropdown
-                        options={visitData?.countriesLanguagesFromServer || []}
-                        name="countryOfPatient1"
+                        options={visitData?.countriesFromServer || []}
                         control={form.control}
+                        name="homeCountryOfPatientI"
+                        id="homeCountryOfPatientI"
                         placeholderMessage="Kraj"
                         inputMessage="Prosimy wybrać kraj zamieszkania"
                         noFoundAnswer="Nie odnaleziono takiego kraju"
@@ -818,11 +1276,13 @@ export default function MakeVisitPage() {
                       <div className="flex gap-[16px]">
                         <FormField
                           control={form.control}
-                          name="streetOfPatient1"
+                          name="houseStreetOfPatientI"
                           render={({ field }) => (
                             <FormItem className="flex flex-col grow">
-                              <FormControl {...field}>
+                              <FormControl>
                                 <Input 
+                                  defaultValue={field.value}
+                                  onChange={field.onChange}
                                   className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus:ring-0 
                                   focus:ring-transparent text-[#6D7178] focus-visible:ring-0 focus-visible:ring-offset-0"
                                   placeholder="Ulica"
@@ -834,11 +1294,13 @@ export default function MakeVisitPage() {
                         />                
                         <FormField
                           control={form.control}
-                          name="houseNumberOfPatient1"
+                          name="houseNumberOfPatientI"
                           render={({ field }) => (
                             <FormItem className="flex flex-col w-[201px]">
-                              <FormControl {...field}>
+                              <FormControl>
                                 <Input 
+                                  defaultValue={field.value}
+                                  onChange={field.onChange}
                                   className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none 
                                   focus:ring-0 focus:ring-transparent text-[#6D7178] focus-visible:ring-0 focus-visible:ring-offset-0" 
                                   placeholder="Nr lokalu"
@@ -851,7 +1313,6 @@ export default function MakeVisitPage() {
                       </div>
                     </div>
 
-                    {/* addVisitAdress */}
                     <FormField 
                       control={form.control}
                       name="addVisitAdress"
@@ -870,13 +1331,12 @@ export default function MakeVisitPage() {
                       )}
                     />
 
-                    {/* dane adresowe wizyty */}
                     {form.watch('addVisitAdress') && (
                       <div className="flex flex-col gap-[8px]">
                         <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">Dane adresowe do wizyty</FormLabel>
 
                         <SearchInputWithDropdown
-                          options={visitData?.countriesLanguagesFromServer || []}
+                          options={visitData?.countriesFromServer || []}
                           name="visitAdressCountry"
                           control={form.control}
                           placeholderMessage="Kraj"
@@ -890,8 +1350,10 @@ export default function MakeVisitPage() {
                             name="visitAdressStreet"
                             render={({ field }) => (
                               <FormItem className="flex grow">
-                                <FormControl {...field}>
+                                <FormControl>
                                   <Input 
+                                    defaultValue={field.value}
+                                    onChange={field.onChange}
                                     className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus:ring-0 
                                     focus:ring-transparent text-[#6D7178] focus-visible:ring-0 focus-visible:ring-offset-0"
                                     placeholder="Ulica"
@@ -907,8 +1369,10 @@ export default function MakeVisitPage() {
                             name="visitAdressNumberOfHouse"
                             render={({ field }) => (
                               <FormItem>
-                                <FormControl {...field}>
+                                <FormControl >
                                   <Input 
+                                    defaultValue={field.value}
+                                    onChange={field.onChange}
                                     className="px-0 pt-[8px] w-[201px] pb-[6px] border-0 border-b-2 rounded-none 
                                     focus:ring-0 focus:ring-transparent text-[#6D7178] focus-visible:ring-0 focus-visible:ring-offset-0" 
                                     placeholder="Nr lokalu"
@@ -951,42 +1415,86 @@ export default function MakeVisitPage() {
         </Form>
       </div>
 
-      <div className="col-start-2 col-end-3">
+      <div className="col-start-2 col-end-3 flex relative">
+        <RightSidebarWrap>
+          <SidebarContent className="min-h-max rounded-[8px] bg-[#FEFEFE]">
+            <SidebarGroup className="p-[16px]">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <Collapsible
+                      className="group/collapsible flex flex-col gap-[10px] [&[data-state=open]>button>svg:first-child]:-rotate-180"
+                    >
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton 
+                          className="flex justify-between p-0 h-max font-medium text-[14px] leading-[21px] hover:bg-[#FEFEFE]
+                          data-[state=open]:hover:bg-[#FEFEFE] data-[state=open]:hover:text-transparent active:bg-[#FEFEFE]
+                          hover:text-[#003E94] text-[#003E94] data-[state=open]:hover:text-[#003E94]"
+                        >
+                          Przejdź do
+                          <ChevronDown className="transition-transform" color="#003E94"/>
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <SidebarSeparator className="m-0 w-full bg-[#D7D8DB]"/>
+                      <CollapsibleContent>
+                        {sidebarRightInfo.map(({title, items}) => (
+                          <SidebarMenuSub 
+                            className="border-1 mx-0 p-0 flex flex-col gap-[8px]"
+                            key={title}
+                          >
+                            <SidebarMenuItem>
+                              <Collapsible
+                                className="group/collapsible [&[data-state=open]>button>svg:first-child]:-rotate-180"
+                              >
+                                <CollapsibleTrigger asChild>
+                                  <SidebarMenuButton 
+                                    className="flex justify-between p-0 h-max font-medium text-[14px] leading-[21px] hover:bg-[#FEFEFE] data-[state=open]:hover:bg-[#FEFEFE] data-[state=open]:hover:text-transparent active:bg-[#FEFEFE] hover:text-[#242628] text-[#242628] data-[state=open]:hover:text-[#242628]"
+                                  >
+                                    {title}
+                                    <ChevronDown className="transition-transform" color="#242628"/>
+                                  </SidebarMenuButton>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                  <SidebarMenuSub className="border-1 mx-[0px] py-[4px] flex flex-col gap-[8px]">
+                                    {items.filter(obj => !!obj).map((nav) => (
+                                      <SidebarMenuButton
+                                        key={nav.title}
+                                        className="data-[active=true]:bg-transparent p-0 px-[18px] m-0 h-max"
+                                        onClick={() => scrollToId(nav.href)}
+                                      >
+                                        <p 
+                                          className="w-full h-full text-[##242628]"
+                                        >
+                                          {nav.title}
+                                        </p>
+                                      </SidebarMenuButton>
+                                    ))}
+                                  </SidebarMenuSub>
+                                </CollapsibleContent>
+                              </Collapsible>
+                            </SidebarMenuItem>
+                          </SidebarMenuSub>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </RightSidebarWrap>
       </div>
+
+      <Toaster />
     </div>
   )
 }
 
-type controlType = Control<{
-    visitNumber: string;
-    visitType: string;
-    specialization: string;
-    dateOfVisit: Date;
-    topicOfVisit: string;
-    langOfVisit: string;
-    patient1AgeIsAdult: boolean;
-    nameOfPatient1: string;
-    surnameOfPatient1: string;
-    documentPatient1: string;
-    peselPatient1: string;
-    dateOfBirthPatient1: Date;
-    countryOfPatient1: string;
-    streetOfPatient1: string;
-    houseNumberOfPatient1: string;
-    addVisitAdress: boolean;
-    visitAdressCountry: string | undefined;
-    visitAdressStreet: string | undefined;
-    visitAdressNumberOfHouse: string | undefined;
-    symptomsOfPatient1?: string[] | undefined;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-}, any>
-
-type nameType = "visitNumber" | "visitType" | "specialization" | "dateOfVisit" | "topicOfVisit" | "langOfVisit" | "patient1AgeIsAdult" | "nameOfPatient1" | "surnameOfPatient1" | "documentPatient1" | "peselPatient1" | "dateOfBirthPatient1" | "countryOfPatient1" | "streetOfPatient1" | "houseNumberOfPatient1" | "visitAdressCountry" | "visitAdressStreet" | "visitAdressNumberOfHouse" | "addVisitAdress" | "symptomsOfPatient1";
-
-type Props = {
+type SearchProps = {
   options: string[],
   name: nameType,
   control: controlType,
+  id?: string,
   title?: string,
   placeholderMessage?: string,
   inputMessage: string,
@@ -999,11 +1507,12 @@ function SearchInputWithDropdown({
   control,
   name,
   title,
+  id,
   placeholderMessage = 'Wybierz z listy',
   inputMessage,
   noFoundAnswer,
   titleOptional,
-}: Props) {
+}: Readonly<SearchProps>) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -1011,9 +1520,12 @@ function SearchInputWithDropdown({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="flex flex-col gap-[8px] space-y-0 w-full">
+        <FormItem className="flex flex-col gap-[8px] space-y-0 w-full" >
           {title && (
-            <FormLabel className="font-bold text-[16px] text-[#112950] leading-[24px]">
+            <FormLabel 
+              className="font-bold text-[16px] text-[#112950] leading-[24px]"
+              id={id}
+            >
               {title}
               {titleOptional && (
                 <span className="font-normal">&nbsp;{titleOptional}</span>
@@ -1083,4 +1595,5 @@ function SearchInputWithDropdown({
       )}
     />
   )
-}
+};
+

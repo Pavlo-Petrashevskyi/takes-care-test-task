@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import AvatarImg from '../../public/avatar.png'
+import AvatarImg from '../../public/avatar.svg'
 import Image from "next/image"
 import {
   Sidebar,
@@ -23,7 +23,7 @@ const data = {
       title: "Główne",
       items: [
         {
-          title: "Strona Główna",
+          title: "Strona główna",
           url: "/",
           icon: House,
         },
@@ -128,7 +128,10 @@ export function AppSidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar
                         onMouseEnter={() => setIsHovered(item.title)}
                         onMouseLeave={() => setIsHovered('')}
                       >
-                        <a href={item.url} className="flex items-center gap-[8px] h-[24px] p-0 text-[#242628] font-medium text-[16px] leading-[24px] data-[active=true]:bg-transparent active:bg-transparent hover:bg-transparent" >
+                        <a 
+                          href={item.url} 
+                          className="flex items-center gap-[8px] h-[24px] p-0 text-[#242628] font-medium text-[16px] leading-[24px] data-[active=true]:bg-transparent active:bg-transparent hover:bg-transparent transition-all duration-300"
+                        >
                           {<item.icon 
                             size={24} 
                             color={(pathname === item.url || isHovered === item.title) ? '#0068FA' : '#242628'}

@@ -8,7 +8,7 @@ export default function Page() {
       <BreadcrumbsConstructor />
       <PagesTitle />
 
-      <div className="flex items-center justify-start mt-[40px] px-[5px] h-[80px] w-full bg-[#FEFEFE] rounded-[8px]">
+      <div className="flex items-center justify-start mt-[40px] p-[20px] h-[80px] w-full bg-[#FEFEFE] rounded-[8px]">
         <span className="flex">
           Przepraszamy, ale strona jest w naprawie 
           &nbsp;
