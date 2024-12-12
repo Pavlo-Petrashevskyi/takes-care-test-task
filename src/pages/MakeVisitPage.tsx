@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
@@ -57,32 +58,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@radix-ui/r
 import RightSidebarWrap from "@/components/RightSidebarWrap"
 
 type controlType = Control<{
-  visitNumber: string;
-  visitType: string;
-  specialization: string;
-  dateOfVisit: Date;
-  topicOfVisit: string;
-  langOfVisit: string;
-  AgeIsAdultPatientI: boolean;
-  nameOfPatientI: string;
-  surnameOfPatientI: string;
-  documentPatientI: string;
-  peselPatientI: string;
-  dateOfBirthPatientI: Date;
-  houseStreetOfPatientI: string;
-  homeCountryOfPatientI: string;
-  showHoursOfVisit?: boolean;
-  hourFrom?: string;
-  hourTo?: string;
-  houseNumberOfPatientI: string;
-  customErrorPeselPatientI: string;
-  symptomsOfPatientI?: string[];
-  addVisitAdress?: boolean;
-  visitAdressCountry?: string;
-  visitAdressStreet?: string;
-  visitAdressNumberOfHouse?: string;
-  additionalInformation?: string;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [x: string]: any;
 }, any>
 
 type nameType = "visitNumber" | "visitType" | "specialization" | "dateOfVisit" | "topicOfVisit" | "langOfVisit" | "AgeIsAdultPatientI" 
@@ -90,186 +66,178 @@ type nameType = "visitNumber" | "visitType" | "specialization" | "dateOfVisit" |
 | "homeCountryOfPatientI" | "houseStreetOfPatientI" | "houseNumberOfPatientI" | "visitAdressCountry" 
 | "visitAdressStreet" | "visitAdressNumberOfHouse" | "addVisitAdress" | "symptomsOfPatientI" | "customErrorPeselPatientI"
 
-export type FormType = typeof FormSchema;
-
-const FormSchema = z.object({
-  visitNumber: z
-    .string({
-      required_error: "Prosimy wpisać numer zgłoszenia",
-    }),
-  visitType: z.string({
-    required_error: 'Prosimy wybrać rodzaj wizyty'
-  }),
-  specialization: z
-    .string({
-      required_error: 'Prosimy wybrać specjalizację wizyty',
-    }),
-  dateOfVisit: z.date({
-    required_error: 'Prosimy wybrać datę wizyty',
-  }),
-  showHoursOfVisit: z.boolean().optional(),
-  hourFrom: z.string().optional(),
-  hourTo: z.string().optional(),
-  topicOfVisit: z.string({
-    required_error: 'Prosimy wybrać temat wizyty'
-  }),
-  additionalInformation: z.string().optional(),
-  langOfVisit: z.string({
-    required_error: 'Prosimy wybrać język wizyty'
-  }),
-  AgeIsAdultPatientI: z.boolean(),
-  nameOfPatientI: z.string({
-    required_error: 'Prosimy wpisać imię'
-  }),
-  surnameOfPatientI: z.string({
-    required_error: 'Prosimy wpisać nazwisko'
-  }),
-  documentPatientI: z.string(),
-  peselPatientI: z.string({
-    required_error: 'Prosimy wpisać PESEL'
-  }),
-  dateOfBirthPatientI: z.date({
-    required_error: 'Prosimy wybrać datę urodzenia'
-  }),
-  homeCountryOfPatientI: z.string({
-    required_error: 'Prosimy wybrać kraj zamieszkania',
-  }),
-  houseStreetOfPatientI: z.string({
-    required_error: 'Prosimy wpisać adres zamieszkania',
-  }),
-  houseNumberOfPatientI: z.string({
-    required_error: 'Prosimy wpisać numer budynku zamieszkania'
-  }),
-  customErrorPeselPatientI: z.string(),
-  symptomsOfPatientI: z.string().array().optional(),
-  addVisitAdress: z.boolean().optional(),
-  visitAdressCountry: z.string().optional(),
-  visitAdressStreet: z.string().optional(),
-  visitAdressNumberOfHouse: z.string().optional(),
-})
 
 export default function MakeVisitPage() {
   const [patientsAmount, setPatientsAmount] = useState(1)
   const { toast } = useToast()
   const pathname = usePathname();
+
+  const FormSchema = React.useMemo(() => {
+    return z.object({
+      visitNumber: z
+        .string({
+          required_error: "Prosimy wpisać numer zgłoszenia",
+        }),
+      visitType: z.string({
+        required_error: 'Prosimy wybrać rodzaj wizyty'
+      }),
+      specialization: z
+        .string({
+          required_error: 'Prosimy wybrać specjalizację wizyty',
+        }),
+      dateOfVisit: z.date({
+        required_error: 'Prosimy wybrać datę wizyty',
+      }),
+      showHoursOfVisit: z.boolean().optional(),
+      hourFrom: z.string().optional(),
+      hourTo: z.string().optional(),
+      topicOfVisit: z.string({
+        required_error: 'Prosimy wybrać temat wizyty'
+      }),
+      additionalInformation: z.string().optional(),
+      langOfVisit: z.string({
+        required_error: 'Prosimy wybrać język wizyty'
+      }),
+      AgeIsAdultPatientI: z.boolean(),
+      nameOfPatientI: z.string({
+        required_error: 'Prosimy wpisać imię'
+      }),
+      surnameOfPatientI: z.string({
+        required_error: 'Prosimy wpisać nazwisko'
+      }),
+      documentPatientI: z.string(),
+      peselPatientI: z.string({
+        required_error: 'Prosimy wpisać PESEL'
+      }),
+      dateOfBirthPatientI: z.date({
+        required_error: 'Prosimy wybrać datę urodzenia'
+      }),
+      homeCountryOfPatientI: z.string({
+        required_error: 'Prosimy wybrać kraj zamieszkania',
+      }),
+      houseStreetOfPatientI: z.string({
+        required_error: 'Prosimy wpisać adres zamieszkania',
+      }),
+      houseNumberOfPatientI: z.string({
+        required_error: 'Prosimy wpisać numer budynku zamieszkania'
+      }),
+      customErrorPeselPatientI: z.string(),
+      symptomsOfPatientI: z.string().array().optional(),
+      addVisitAdress: z.boolean().optional(),
+      visitAdressCountry: z.string().optional(),
+      visitAdressStreet: z.string().optional(),
+      visitAdressNumberOfHouse: z.string().optional(),
+    })
+    .extend(patientsAmount >= 2 
+      ? {
+          AgeIsAdultPatientII: z.boolean().default(true),
+          nameOfPatientII: z.string({
+            required_error: 'Prosimy wpisać imię'
+          }),
+          surnameOfPatientII: z.string({
+            required_error: 'Prosimy wpisać nazwisko'
+          }),
+          documentPatientII: z.string(),
+          peselPatientII: z.string({
+            required_error: 'Prosimy wpisać PESEL'
+          }),
+          dateOfBirthPatientII: z.date({
+            required_error: 'Prosimy wybrać datę urodzenia'
+          }),
+          customErrorPeselPatientII: z.string(),
+        }
+      : {}
+    )
+    .extend(patientsAmount >= 3 
+      ? {
+          AgeIsAdultPatientIII: z.boolean().default(true),
+          nameOfPatientIII: z.string({
+            required_error: 'Prosimy wpisać imię'
+          }),
+          surnameOfPatientIII: z.string({
+            required_error: 'Prosimy wpisać nazwisko'
+          }),
+          documentPatientIII: z.string(),
+          peselPatientIII: z.string({
+            required_error: 'Prosimy wpisać PESEL'
+          }),
+          dateOfBirthPatientIII: z.date({
+            required_error: 'Prosimy wybrać datę urodzenia'
+          }),
+          customErrorPeselPatientIII: z.string(),
+        }
+      : {}
+    )
+    .extend(patientsAmount >= 4 
+      ? {
+          AgeIsAdultPatientIV: z.boolean().default(true),
+          nameOfPatientIV: z.string({
+            required_error: 'Prosimy wpisać imię'
+          }),
+          surnameOfPatientIV: z.string({
+            required_error: 'Prosimy wpisać nazwisko'
+          }),
+          documentPatientIV: z.string(),
+          peselPatientIV: z.string({
+            required_error: 'Prosimy wpisać PESEL'
+          }),
+          dateOfBirthPatientIV: z.date({
+            required_error: 'Prosimy wybrać datę urodzenia'
+          }),
+          customErrorPeselPatientIV: z.string(),
+        }
+      : {}
+    )
+    .extend(patientsAmount >= 5 
+      ? {
+          AgeIsAdultPatientV: z.boolean().default(true),
+          nameOfPatientV: z.string({
+            required_error: 'Prosimy wpisać imię'
+          }),
+          surnameOfPatientV: z.string({
+            required_error: 'Prosimy wpisać nazwisko'
+          }),
+          documentPatientV: z.string(),
+          peselPatientV: z.string({
+            required_error: 'Prosimy wpisać PESEL'
+          }),
+          dateOfBirthPatientV: z.date({
+            required_error: 'Prosimy wybrać datę urodzenia'
+          }),
+          customErrorPeselPatientV: z.string(),
+        }
+      : {}
+    )
+    .extend(patientsAmount >= 6 
+      ? {
+          AgeIsAdultPatientVI: z.boolean().default(true),
+          nameOfPatientVI: z.string({
+            required_error: 'Prosimy wpisać imię'
+          }),
+          surnameOfPatientVI: z.string({
+            required_error: 'Prosimy wpisać nazwisko'
+          }),
+          documentPatientVI: z.string(),
+          peselPatientVI: z.string({
+            required_error: 'Prosimy wpisać PESEL'
+          }),
+          dateOfBirthPatientVI: z.date({
+            required_error: 'Prosimy wybrać datę urodzenia'
+          }),
+          customErrorPeselPatientVI: z.string(),
+        }
+      : {}
+    )
+  }, [patientsAmount]);
+
+  type FormType = typeof FormSchema;
+
   const form = useForm<z.infer<FormType>>({
-    resolver: zodResolver(
-      FormSchema
-        .extend(patientsAmount >= 2 
-          ? {
-              AgeIsAdultPatientII: z.boolean(),
-              nameOfPatientII: z.string({
-                required_error: 'Prosimy wpisać imię'
-              }),
-              surnameOfPatientII: z.string({
-                required_error: 'Prosimy wpisać nazwisko'
-              }),
-              documentPatientII: z.string(),
-              peselPatientII: z.string({
-                required_error: 'Prosimy wpisać PESEL'
-              }),
-              dateOfBirthPatientII: z.date({
-                required_error: 'Prosimy wybrać datę urodzenia'
-              }),
-              customErrorPeselPatientII: z.string(),
-            }
-          : {}
-        )
-        .extend(patientsAmount >= 3 
-          ? {
-              AgeIsAdultPatientIII: z.boolean(),
-              nameOfPatientIII: z.string({
-                required_error: 'Prosimy wpisać imię'
-              }),
-              surnameOfPatientIII: z.string({
-                required_error: 'Prosimy wpisać nazwisko'
-              }),
-              documentPatientIII: z.string(),
-              peselPatientIII: z.string({
-                required_error: 'Prosimy wpisać PESEL'
-              }),
-              dateOfBirthPatientIII: z.date({
-                required_error: 'Prosimy wybrać datę urodzenia'
-              }),
-              customErrorPeselPatientIII: z.string(),
-            }
-          : {}
-        )
-        .extend(patientsAmount >= 4 
-          ? {
-              AgeIsAdultPatientIV: z.boolean(),
-              nameOfPatientIV: z.string({
-                required_error: 'Prosimy wpisać imię'
-              }),
-              surnameOfPatientIV: z.string({
-                required_error: 'Prosimy wpisać nazwisko'
-              }),
-              documentPatientIV: z.string(),
-              peselPatientIV: z.string({
-                required_error: 'Prosimy wpisać PESEL'
-              }),
-              dateOfBirthPatientIV: z.date({
-                required_error: 'Prosimy wybrać datę urodzenia'
-              }),
-              customErrorPeselPatientIV: z.string(),
-            }
-          : {}
-        )
-        .extend(patientsAmount >= 5 
-          ? {
-              AgeIsAdultPatientV: z.boolean(),
-              nameOfPatientV: z.string({
-                required_error: 'Prosimy wpisać imię'
-              }),
-              surnameOfPatientV: z.string({
-                required_error: 'Prosimy wpisać nazwisko'
-              }),
-              documentPatientV: z.string(),
-              peselPatientV: z.string({
-                required_error: 'Prosimy wpisać PESEL'
-              }),
-              dateOfBirthPatientV: z.date({
-                required_error: 'Prosimy wybrać datę urodzenia'
-              }),
-              customErrorPeselPatientV: z.string(),
-            }
-          : {}
-        )
-        .extend(patientsAmount >= 6 
-          ? {
-              AgeIsAdultPatientVI: z.boolean(),
-              nameOfPatientVI: z.string({
-                required_error: 'Prosimy wpisać imię'
-              }),
-              surnameOfPatientVI: z.string({
-                required_error: 'Prosimy wpisać nazwisko'
-              }),
-              documentPatientVI: z.string(),
-              peselPatientVI: z.string({
-                required_error: 'Prosimy wpisać PESEL'
-              }),
-              dateOfBirthPatientVI: z.date({
-                required_error: 'Prosimy wybrać datę urodzenia'
-              }),
-              customErrorPeselPatientVI: z.string(),
-            }
-          : {}
-        )
-    ),
+    resolver: zodResolver(FormSchema),
     defaultValues: {
       visitType: 'Wizyta domowa',
       AgeIsAdultPatientI: true,
-      AgeIsAdultPatientII: true,
-      AgeIsAdultPatientIII: true,
-      AgeIsAdultPatientIV: true,
-      AgeIsAdultPatientV: true,
-      AgeIsAdultPatientVI: true,
       documentPatientI: 'pesel',
-      documentPatientII: 'pesel',
-      documentPatientIII: 'pesel',
-      documentPatientIV: 'pesel',
-      documentPatientV: 'pesel',
-      documentPatientVI: 'pesel',
     },
     criteriaMode: 'all',
   });
@@ -1054,7 +1022,7 @@ export default function MakeVisitPage() {
                     name={(`documentPatient${number}`) as nameType}
                     render={({ field }) => (
                       <Tabs 
-                        defaultValue={field.value} 
+                        defaultValue={field.value || 'pesel'} 
                         className="flex flex-col gap-[8px] w-full m-0"
                         onValueChange={field.onChange}
                       >
@@ -1104,7 +1072,7 @@ export default function MakeVisitPage() {
                                 <FormMessage />
                                 {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types && (
                                   <span className="text-sm font-medium text-red-500 dark:text-red-900">
-                                    {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types?.message}
+                                    {(form.formState.errors[`customErrorPeselPatient${number}`]?.types?.message) as React.ReactNode}
                                   </span>
                                 )}
                               </>
@@ -1134,7 +1102,7 @@ export default function MakeVisitPage() {
                                   <FormMessage />
                                   {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types && (
                                     <span className="text-sm font-medium text-red-500 dark:text-red-900">
-                                      {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types?.message}
+                                       {(form.formState.errors[`customErrorPeselPatient${number}`]?.types?.message) as React.ReactNode}
                                     </span>
                                   )}
                                 </FormItem>
@@ -1407,6 +1375,7 @@ export default function MakeVisitPage() {
             <Button 
               type="submit"
               className="flex items-center justify-center gap-[8px] mt-[4px] mb-[40px] w-full h-[48px] rounded-[8px] bg-[#0068FA] font-medium text-[16px] text-[#FEFEFE] leading-[24px]"
+              onClick={() => console.log(form.formState.errors)}
             >
               Dalej
               <ChevronRight size={16} color="#FEFEFE"/>
