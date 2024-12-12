@@ -2,7 +2,7 @@ import BreadcrumbsConstructor from "@/components/BreadcrumbsConstructor";
 import PagesTitle from "@/components/PagesTitle";
 import { Settings } from "lucide-react";
 
-export default async function Home() {
+export default function Page() {
   return (
     <>
       <BreadcrumbsConstructor />
