@@ -37,15 +37,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, CirclePlus} from "lucide-react"
+import { CalendarDays, Check, ChevronDown, ChevronRight, CirclePlus} from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
+import { format, setMonth } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
 import { cn, countArrayOfHoursForFromHourField, countArrayOfHoursForToHourField, countDateOfBirthUsingPesel, isValidPesel, scrollToId } from "@/lib/utils"
 import { useEffect, useState } from 'react';
-import { DropdownProps } from "react-day-picker"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { usePathname } from "next/navigation";
 import moment from 'moment';
 import { MultiSelect } from "@/components/MultiSelectComponent"
@@ -54,8 +52,12 @@ import { Toaster } from "@/components/ui/toaster"
 import { VisitData } from "@/types/visitData"
 import { BASE_URL } from "@/api/api"
 import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarSeparator } from "@/components/ui/sidebar"
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@radix-ui/react-collapsible"
 import RightSidebarWrap from "@/components/RightSidebarWrap"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { DayPicker, useDayPicker } from "react-day-picker"
+import "react-day-picker/style.css";
+
+
 
 type controlType = Control<{
   [x: string]: any;
@@ -688,7 +690,7 @@ export default function MakeVisitPage() {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent>
+                        <PopoverContent className="w-max">
                           <Calendar 
                             mode="single"
                             selected={field.value}
@@ -697,10 +699,11 @@ export default function MakeVisitPage() {
                               form.setValue('hourFrom', undefined);
                               form.setValue('hourTo', undefined);
                             }}
-                            className="flex items-center justify-center bg-[#FEFEFE] border-[#112950] rounded-[6px]"
-                            disabled={[(date) => moment(date).date() < moment().date() || moment(date).date() > moment().add(3, "days").date()]}
+                            className="w-max flex items-center justify-center bg-[#FEFEFE] border-[#112950] rounded-[6px]"
+                            disabled={[
+                              (date) => moment(date).isBefore(moment().subtract(1, 'days')) || moment(date).isAfter(moment().add(3, "days"))
+                            ]}
                             weekStartsOn={1}
-                            initialFocus
                           />
                         </PopoverContent>
                       </Popover>
@@ -755,7 +758,7 @@ export default function MakeVisitPage() {
                                     key={`${hour}-hour`}
                                     value={`${hour}`}
                                     className="px-8 justify-center"
-                                    onSelect={(e) => {
+                                    onSelect={(e: any) => {
                                       field.onChange(e);
                                       form.setValue("hourTo", undefined);
                                     }}
@@ -1132,81 +1135,46 @@ export default function MakeVisitPage() {
                                           </Button>
                                         </FormControl>
                                       </PopoverTrigger>
-                                      <PopoverContent>
+                                      <PopoverContent className="w-max">
                                         <Calendar 
                                           mode="single"
-                                          onSelect={field.onChange}
-                                          className="bg-[#FEFEFE] p-0 border-[#112950] rounded-[6px]"
+                                          captionLayout="dropdown"
+                                          selected={field.value}
+                                          className="flex items-center justify-center w-max bg-[#FEFEFE] p-0 border-[#112950] rounded-[6px]"
                                           classNames={{
-                                            months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                                            month: "space-y-4",
-                                            caption: "flex justify-center pt-1 relative items-center",
-                                            caption_label: "text-sm font-medium",
-                                            caption_dropdowns: "flex justify-center gap-1",
-                                            nav: "space-x-1 flex items-center",
-                                            nav_button: cn(
+                                            months: "flex justify-center",
+                                            month_caption: "flex justify-center",
+                                            caption_label: "flex items-center gap-[4px] p-[1px] border-[1px] rounded-[5px]",
+                                            nav: "flex",
+                                            button_previous: cn(
                                               buttonVariants({ variant: "outline" }),
-                                              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                                              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1"
                                             ),
-                                            nav_button_previous: "absolute left-1",
-                                            nav_button_next: "absolute right-1",
-                                            table: "w-full border-collapse space-y-1",
-                                            head_row: "flex",
-                                            head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-                                            row: "flex w-full mt-2",
-                                            cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                            day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100"),
-                                            day_selected:
-                                              "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                                            day_today: "bg-accent text-accent-foreground",
-                                            day_outside: "text-muted-foreground opacity-50",
-                                            day_disabled: "text-muted-foreground opacity-50",
-                                            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                                            day_hidden: "invisible",
+                                            button_next: cn(
+                                              buttonVariants({ variant: "outline" }),
+                                              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1"
+                                            ),
+                                            month_grid: "w-full border-collapse space-y-1",
+                                            weekdays: "flex mt-[20px]",
+                                            weekday: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                                            week: "flex w-full mt-2",
+                                            day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20"),
+                                            selected:
+                                              "bg-[#242628] text-[#FEFEFE] hover:bg-[#242628] hover:text-[#FEFEFE] focus:bg-[#242628]focus:text-[#FEFEFE]",
+                                            today: "bg-accent text-[#0068FA]",
+                                            outside: "text-muted-foreground opacity-50",
+                                            disabled: "text-muted-foreground opacity-50",
+                                            range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                                            hidden: "invisible",
                                             ...classNames,
                                           }}
-                                          components={{
-                                            CaptionLabel: () => <></>,
-                                            Dropdown: ({ value, onChange, children, ...props }: DropdownProps) => {
-                                              const options = React.Children.toArray(children) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[]
-                                              const selected = options.find((child) => child.props.value === value)
-                                              const handleChange = (value: string) => {
-                                                const changeEvent = {
-                                                  target: { value },
-                                                } as React.ChangeEvent<HTMLSelectElement>
-                                                onChange?.(changeEvent)
-                                              }
-                                              return (
-                                                <Select
-                                                  value={value?.toString()}
-                                                  onValueChange={(value: string) => {
-                                                    handleChange(value)
-                                                  }}
-                                                >
-                                                  <SelectTrigger className="pr-1.5 focus:ring-0">
-                                                    <SelectValue>{selected?.props?.children}</SelectValue>
-                                                  </SelectTrigger>
-                                                  <SelectContent position="popper">
-                                                    <ScrollArea className="h-80">
-                                                      {options.map((option, id: number) => (
-                                                        <SelectItem key={`${option.props.value}-${id}`} value={option.props.value?.toString() ?? ""}>
-                                                          {option.props.children}
-                                                        </SelectItem>
-                                                      ))}
-                                                    </ScrollArea>
-                                                  </SelectContent>
-                                                </Select>
-                                              )
-                                            },
-                                            IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-                                            IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+                                          onSelect={(e: any) => {
+                                            field.onChange(e)
                                           }}
-                                          captionLayout="dropdown-buttons"
-                                          fromYear={moment().subtract(100, 'years').year()}
-                                          toYear={moment().year()}
+                                          startMonth={new Date(moment().subtract(100, 'years').year(), moment().month())}
+                                          endMonth={new Date(moment().year(), moment().month())}
                                           disabled={[(date) => moment(date).isAfter(moment(), 'day') || moment(date).isBefore(moment().subtract(100, 'year'), 'day')]}
                                           weekStartsOn={1}
-                                          initialFocus
                                         />
                                       </PopoverContent>
                                     </Popover>
@@ -1537,7 +1505,7 @@ function SearchInputWithDropdown({
                       <CommandItem
                         value={option}
                         key={option}
-                        onSelect={(e) => {
+                        onSelect={(e: any) => {
                           field.onChange(e);
                           setOpen(false);
                         }}
