@@ -10,7 +10,7 @@ import PagesTitle from "@/components/PagesTitle"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Control, useForm } from "react-hook-form"
 import { z } from "zod"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -40,7 +40,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { CalendarDays, Check, ChevronDown, ChevronRight, CirclePlus} from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
+import { format, setMonth } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
 import { cn, countArrayOfHoursForFromHourField, countArrayOfHoursForToHourField, countDateOfBirthUsingPesel, isValidPesel, scrollToId } from "@/lib/utils"
 import { useEffect, useState } from 'react';
@@ -54,7 +54,10 @@ import { BASE_URL } from "@/api/api"
 import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarSeparator } from "@/components/ui/sidebar"
 import RightSidebarWrap from "@/components/RightSidebarWrap"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, useDayPicker } from "react-day-picker"
+import "react-day-picker/style.css";
+
+
 
 type controlType = Control<{
   [x: string]: any;
@@ -687,7 +690,7 @@ export default function MakeVisitPage() {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent>
+                        <PopoverContent className="w-max">
                           <Calendar 
                             mode="single"
                             selected={field.value}
@@ -696,8 +699,10 @@ export default function MakeVisitPage() {
                               form.setValue('hourFrom', undefined);
                               form.setValue('hourTo', undefined);
                             }}
-                            // className="flex items-center justify-center bg-[#FEFEFE] border-[#112950] rounded-[6px]"
-                            disabled={[(date) => moment(date).date() < moment().date() || moment(date).date() > moment().add(3, "days").date()]}
+                            className="w-max flex items-center justify-center bg-[#FEFEFE] border-[#112950] rounded-[6px]"
+                            disabled={[
+                              (date) => moment(date).isBefore(moment().subtract(1, 'days')) || moment(date).isAfter(moment().add(3, "days"))
+                            ]}
                             weekStartsOn={1}
                           />
                         </PopoverContent>
@@ -1130,9 +1135,46 @@ export default function MakeVisitPage() {
                                           </Button>
                                         </FormControl>
                                       </PopoverTrigger>
-                                      <PopoverContent>
+                                      <PopoverContent className="w-max">
                                         <Calendar 
+                                          mode="single"
                                           captionLayout="dropdown"
+                                          selected={field.value}
+                                          className="flex items-center justify-center w-max bg-[#FEFEFE] p-0 border-[#112950] rounded-[6px]"
+                                          classNames={{
+                                            months: "flex justify-center",
+                                            month_caption: "flex justify-center",
+                                            caption_label: "flex items-center gap-[4px] p-[1px] border-[1px] rounded-[5px]",
+                                            nav: "flex",
+                                            button_previous: cn(
+                                              buttonVariants({ variant: "outline" }),
+                                              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1"
+                                            ),
+                                            button_next: cn(
+                                              buttonVariants({ variant: "outline" }),
+                                              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1"
+                                            ),
+                                            month_grid: "w-full border-collapse space-y-1",
+                                            weekdays: "flex mt-[20px]",
+                                            weekday: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                                            week: "flex w-full mt-2",
+                                            day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20"),
+                                            selected:
+                                              "bg-[#242628] text-[#FEFEFE] hover:bg-[#242628] hover:text-[#FEFEFE] focus:bg-[#242628]focus:text-[#FEFEFE]",
+                                            today: "bg-accent text-[#0068FA]",
+                                            outside: "text-muted-foreground opacity-50",
+                                            disabled: "text-muted-foreground opacity-50",
+                                            range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                                            hidden: "invisible",
+                                            ...classNames,
+                                          }}
+                                          onSelect={(e: any) => {
+                                            field.onChange(e)
+                                          }}
+                                          startMonth={new Date(moment().subtract(100, 'years').year(), moment().month())}
+                                          endMonth={new Date(moment().year(), moment().month())}
+                                          disabled={[(date) => moment(date).isAfter(moment(), 'day') || moment(date).isBefore(moment().subtract(100, 'year'), 'day')]}
+                                          weekStartsOn={1}
                                         />
                                       </PopoverContent>
                                     </Popover>
