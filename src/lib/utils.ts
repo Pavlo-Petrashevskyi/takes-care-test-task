@@ -41,7 +41,7 @@ export function countArrayOfHoursForToHourField(fromHour: string | undefined) {
 }
 
 export function isValidPesel(pesel: string) {
-  if (typeof pesel !== 'string') {
+  if (typeof pesel !== 'string' || pesel.length > 11) {
     return false;
   }
 

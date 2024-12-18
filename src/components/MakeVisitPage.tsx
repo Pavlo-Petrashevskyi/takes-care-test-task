@@ -54,10 +54,7 @@ import { BASE_URL } from "@/api/api"
 import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarSeparator } from "@/components/ui/sidebar"
 import RightSidebarWrap from "@/components/RightSidebarWrap"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { DayPicker, useDayPicker } from "react-day-picker"
 import "react-day-picker/style.css";
-
-
 
 type controlType = Control<{
   [x: string]: any;
@@ -66,8 +63,7 @@ type controlType = Control<{
 type nameType = "visitNumber" | "visitType" | "specialization" | "dateOfVisit" | "topicOfVisit" | "langOfVisit" | "AgeIsAdultPatientI" 
 | "nameOfPatientI" | "surnameOfPatientI" | "documentPatientI" | "peselPatientI" | "dateOfBirthPatientI" 
 | "homeCountryOfPatientI" | "houseStreetOfPatientI" | "houseNumberOfPatientI" | "visitAdressCountry" 
-| "visitAdressStreet" | "visitAdressNumberOfHouse" | "addVisitAdress" | "symptomsOfPatientI" | "customErrorPeselPatientI"
-
+| "visitAdressStreet" | "visitAdressNumberOfHouse" | "addVisitAdress" | "symptomsOfPatientI" | "customErrorPeselPatientI" | 'customErrorPeselPatientII' | 'customErrorPeselPatientIII' | 'customErrorPeselPatientIV' | 'customErrorPeselPatientV' | 'customErrorPeselPatientVI';
 
 export default function MakeVisitPage() {
   const [patientsAmount, setPatientsAmount] = useState(1)
@@ -147,6 +143,7 @@ export default function MakeVisitPage() {
             required_error: 'Prosimy wybrać datę urodzenia'
           }),
           customErrorPeselPatientII: z.string(),
+          symptomsOfPatientII: z.string().array().optional(),
         }
       : {}
     )
@@ -167,6 +164,7 @@ export default function MakeVisitPage() {
             required_error: 'Prosimy wybrać datę urodzenia'
           }),
           customErrorPeselPatientIII: z.string(),
+          symptomsOfPatientIII: z.string().array().optional(),
         }
       : {}
     )
@@ -187,6 +185,7 @@ export default function MakeVisitPage() {
             required_error: 'Prosimy wybrać datę urodzenia'
           }),
           customErrorPeselPatientIV: z.string(),
+          symptomsOfPatientIV: z.string().array().optional(),
         }
       : {}
     )
@@ -207,6 +206,7 @@ export default function MakeVisitPage() {
             required_error: 'Prosimy wybrać datę urodzenia'
           }),
           customErrorPeselPatientV: z.string(),
+          symptomsOfPatientV: z.string().array().optional(),
         }
       : {}
     )
@@ -227,6 +227,7 @@ export default function MakeVisitPage() {
             required_error: 'Prosimy wybrać datę urodzenia'
           }),
           customErrorPeselPatientVI: z.string(),
+          symptomsOfPatientVI: z.string().array().optional(),
         }
       : {}
     )
@@ -249,7 +250,7 @@ export default function MakeVisitPage() {
   const romanNumbers = React.useMemo(() => ['I','II','III','IV','V','VI'], []);
   const patientsNumberRomanArray = React.useMemo(() => Array.from({length: patientsAmount}).map((_, i) => romanNumbers[i]), [patientsAmount])
 
-  function onSubmit(data: z.infer<FormType>) {
+  function onSubmit(data: z.infer<FormType>) {    
     toast({
       title: "You submitted the following values:",
       description: (
@@ -258,26 +259,21 @@ export default function MakeVisitPage() {
         </pre>
       ),
     })
-    console.log(data);
   }
 
-  function validatePeselAndShowErrorMessages(e:  React.ChangeEvent<HTMLInputElement>, errorField: nameType) {
+  function validatePeselAndShowErrorMessages(pesel: string, errorField: nameType) {
     form.clearErrors(errorField);
     form.setValue(errorField, undefined);
-    form.clearErrors();
 
-    if (e.target.value.length === 0) {
+    if (pesel.length === 0) {
       return form.setError(errorField, {
         types: {
           message: 'Prosimy wpisać PESEL',
         }
       })
     }
-    
-    if (e.target.value.length < 11 
-        || e.target.value.length > 11 
-        || !RegExp(new RegExp(/^\d{11}$/)).exec(e.target.value)
-      ) {
+
+    if (pesel.length > 11 || pesel.length < 11 || !RegExp(new RegExp(/^\d{11}$/)).test(pesel)) {
       return form.setError(errorField, {
         types: {    
           message: 'PESEL musi składać się z 11 cyfr',
@@ -285,13 +281,15 @@ export default function MakeVisitPage() {
       })
     }
 
-    if (!isValidPesel(e.target.value)) {
+    if (!isValidPesel(pesel)) {
       return form.setError(errorField, {
         types: {    
           message: 'PESEL nie prawidłowy',
         }
       })
     }
+
+    return true;
   }
 
   useEffect(() => { 
@@ -323,7 +321,7 @@ export default function MakeVisitPage() {
     const peselValue = form.watch('peselPatientI');
     let birthDate;
 
-    if (isValidPesel(peselValue)) {
+    if (peselValue && validatePeselAndShowErrorMessages(peselValue, 'customErrorPeselPatientI')) {
       birthDate = countDateOfBirthUsingPesel(peselValue);
       form.setValue('customErrorPeselPatientI', 'OK');
     }
@@ -357,7 +355,7 @@ export default function MakeVisitPage() {
     const peselValue = form.watch('peselPatientII');
     let birthDate;
 
-    if (isValidPesel(peselValue)) {
+    if (peselValue && validatePeselAndShowErrorMessages(peselValue, 'customErrorPeselPatientII')) {
       birthDate = countDateOfBirthUsingPesel(peselValue);
       form.setValue('customErrorPeselPatientII', 'OK');
     }
@@ -391,7 +389,7 @@ export default function MakeVisitPage() {
     const peselValue = form.watch('peselPatientIII');
     let birthDate;
 
-    if (isValidPesel(peselValue)) {
+    if (peselValue && validatePeselAndShowErrorMessages(peselValue, 'customErrorPeselPatientIII')) {
       birthDate = countDateOfBirthUsingPesel(peselValue);
       form.setValue('customErrorPeselPatientIII', 'OK');
     }
@@ -425,7 +423,7 @@ export default function MakeVisitPage() {
     const peselValue = form.watch('peselPatientIV');
     let birthDate;
 
-    if (isValidPesel(peselValue)) {
+    if (peselValue && validatePeselAndShowErrorMessages(peselValue, 'customErrorPeselPatientIV')) {
       birthDate = countDateOfBirthUsingPesel(peselValue);
       form.setValue('customErrorPeselPatientIV', 'OK');
     }
@@ -459,7 +457,7 @@ export default function MakeVisitPage() {
     const peselValue = form.watch('peselPatientV');
     let birthDate;
 
-    if (isValidPesel(peselValue)) {
+    if (peselValue && validatePeselAndShowErrorMessages(peselValue, 'customErrorPeselPatientV')) {
       birthDate = countDateOfBirthUsingPesel(peselValue);
       form.setValue('customErrorPeselPatientV', 'OK');
     }
@@ -493,7 +491,7 @@ export default function MakeVisitPage() {
     const peselValue = form.watch('peselPatientVI');
     let birthDate;
 
-    if (isValidPesel(peselValue)) {
+    if (peselValue && validatePeselAndShowErrorMessages(peselValue, 'customErrorPeselPatientVI')) {
       birthDate = countDateOfBirthUsingPesel(peselValue);
       form.setValue('customErrorPeselPatientVI', 'OK');
     }
@@ -884,6 +882,7 @@ export default function MakeVisitPage() {
                   Pacjent
                 </FormLabel>
 
+                {/* Patients Age */}
                 <FormField
                   control={form.control}
                   name={(`AgeIsAdultPatient${number}`) as nameType}
@@ -926,6 +925,7 @@ export default function MakeVisitPage() {
                   )}
                 />
 
+                {/* Patients Data */}
                 <div className="flex flex-col gap-[8px]">
                   <FormLabel 
                     className="font-bold text-[16px] text-[#112950] leading-[24px]"
@@ -977,6 +977,7 @@ export default function MakeVisitPage() {
                   </div>
                 </div>
 
+                {/* Patients Symptoms */}
                 {visitData?.symptomsFromServer && (
                   <FormField 
                     control={form.control}
@@ -1012,6 +1013,7 @@ export default function MakeVisitPage() {
                   />
                 )}
 
+                {/* Patients Documents */}
                 <div className="flex flex-col gap-[8px]">
                   <FormLabel 
                     className="font-bold text-[16px] text-[#112950] leading-[24px]"
@@ -1065,17 +1067,14 @@ export default function MakeVisitPage() {
                                       placeholder="Wpisz numer PESEL"
                                       defaultValue={(field.value) as string | number | readonly string[] | undefined}
                                       className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus-visible:ring-0 focus-visible:ring-transparent"
-                                      onChange={(e) => {
-                                        validatePeselAndShowErrorMessages(e, `customErrorPeselPatient${number}` as nameType)
-                                        field.onChange(e);
-                                      }}
+                                      onChange={field.onChange}
                                     />
                                   </FormControl>
                                 </FormItem>
                                 <FormMessage />
-                                {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types && (
+                                {form.formState.errors && (
                                   <span className="text-sm font-medium text-red-500 dark:text-red-900">
-                                    {(form.formState.errors[`customErrorPeselPatient${number}`]?.types?.message) as React.ReactNode}
+                                    {(form.formState.errors[`customErrorPeselPatient${number}`]?.types?.message) as string}
                                   </span>
                                 )}
                               </>
@@ -1087,102 +1086,99 @@ export default function MakeVisitPage() {
                           className="flex gap-[8px] w-full data-[state=inactive]:hidden"
                         >
                           <FormField
-                              control={form.control}
-                              name={(`peselPatient${number}`) as nameType}
-                              render={({ field }) => (
-                                <FormItem className="basis-auto w-full">
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="Wpisz numer PESEL"
-                                      defaultValue={(field.value) as string | number | readonly string[] | undefined}
-                                      className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus-visible:ring-0 focus-visible:ring-transparent"
-                                      onChange={(e) => {
-                                        validatePeselAndShowErrorMessages(e, `customErrorPeselPatient${number}` as nameType)
-                                        field.onChange(e)
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                  {form.formState.errors[`customErrorPeselPatient${number}` as nameType]?.types && (
-                                    <span className="text-sm font-medium text-red-500 dark:text-red-900">
-                                       {(form.formState.errors[`customErrorPeselPatient${number}`]?.types?.message) as React.ReactNode}
-                                    </span>
-                                  )}
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={(`dateOfBirthPatient${number}`) as nameType}
-                              render={({ field }) => (
-                                <FormItem className="basis-auto w-full">
-                                  <FormControl>
-                                    <Popover>
-                                      <PopoverTrigger asChild className="w-full">
-                                        <FormControl>
-                                          <Button 
-                                            type="button"
-                                            className="w-full px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none justify-between bg-transparent 
-                                            hover:bg-transparent focus-visible:ring-0 focus-visible:ring-transparent font-normal text-[16px] leading-[24px] text-[#6D7178]">
-                                            {field.value ? format((field.value) as string | number | Date, "PPP") : (
-                                              <span>Data urodzenia</span>
-                                            )}
-                                            <CalendarDays 
-                                              size={24} 
-                                              color="#112950"
-                                              className="opacity-60"
-                                            />
-                                          </Button>
-                                        </FormControl>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-max">
-                                        <Calendar 
-                                          mode="single"
-                                          captionLayout="dropdown"
-                                          selected={field.value}
-                                          className="flex items-center justify-center w-max bg-[#FEFEFE] p-0 border-[#112950] rounded-[6px]"
-                                          classNames={{
-                                            months: "flex justify-center",
-                                            month_caption: "flex justify-center",
-                                            caption_label: "flex items-center gap-[4px] p-[1px] border-[1px] rounded-[5px]",
-                                            nav: "flex",
-                                            button_previous: cn(
-                                              buttonVariants({ variant: "outline" }),
-                                              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1"
-                                            ),
-                                            button_next: cn(
-                                              buttonVariants({ variant: "outline" }),
-                                              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1"
-                                            ),
-                                            month_grid: "w-full border-collapse space-y-1",
-                                            weekdays: "flex mt-[20px]",
-                                            weekday: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-                                            week: "flex w-full mt-2",
-                                            day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20"),
-                                            selected:
-                                              "bg-[#242628] text-[#FEFEFE] hover:bg-[#242628] hover:text-[#FEFEFE] focus:bg-[#242628]focus:text-[#FEFEFE]",
-                                            today: "bg-accent text-[#0068FA]",
-                                            outside: "text-muted-foreground opacity-50",
-                                            disabled: "text-muted-foreground opacity-50",
-                                            range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                                            hidden: "invisible",
-                                            ...classNames,
-                                          }}
-                                          onSelect={(e: any) => {
-                                            field.onChange(e)
-                                          }}
-                                          startMonth={new Date(moment().subtract(100, 'years').year(), moment().month())}
-                                          endMonth={new Date(moment().year(), moment().month())}
-                                          disabled={[(date) => moment(date).isAfter(moment(), 'day') || moment(date).isBefore(moment().subtract(100, 'year'), 'day')]}
-                                          weekStartsOn={1}
-                                        />
-                                      </PopoverContent>
-                                    </Popover>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            control={form.control}
+                            name={(`peselPatient${number}`) as nameType}
+                            render={({ field }) => (
+                              <FormItem className="basis-auto w-full">
+                                <FormControl>
+                                  <Input 
+                                    placeholder="Wpisz numer PESEL"
+                                    defaultValue={(field.value) as string | number | readonly string[] | undefined}
+                                    className="px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none focus-visible:ring-0 focus-visible:ring-transparent"
+                                    onChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                                {form.formState.errors && (
+                                  <span className="text-sm font-medium text-red-500 dark:text-red-900">
+                                    {(form.formState.errors[`customErrorPeselPatient${number}`]?.types?.message) as string}
+                                  </span>
+                                )}
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={(`dateOfBirthPatient${number}`) as nameType}
+                            render={({ field }) => (
+                              <FormItem className="basis-auto w-full">
+                                <FormControl>
+                                  <Popover>
+                                    <PopoverTrigger asChild className="w-full">
+                                      <FormControl>
+                                        <Button 
+                                          type="button"
+                                          className="w-full px-0 pt-[8px] pb-[6px] border-0 border-b-2 rounded-none justify-between bg-transparent 
+                                          hover:bg-transparent focus-visible:ring-0 focus-visible:ring-transparent font-normal text-[16px] leading-[24px] text-[#6D7178]">
+                                          {field.value ? format((field.value) as string | number | Date, "PPP") : (
+                                            <span>Data urodzenia</span>
+                                          )}
+                                          <CalendarDays 
+                                            size={24} 
+                                            color="#112950"
+                                            className="opacity-60"
+                                          />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-max">
+                                      <Calendar 
+                                        mode="single"
+                                        captionLayout="dropdown"
+                                        selected={field.value}
+                                        className="flex items-center justify-center w-max bg-[#FEFEFE] p-0 border-[#112950] rounded-[6px]"
+                                        classNames={{
+                                          months: "flex justify-center",
+                                          month_caption: "flex justify-center",
+                                          caption_label: "flex items-center gap-[4px] p-[1px] border-[1px] rounded-[5px]",
+                                          nav: "flex",
+                                          button_previous: cn(
+                                            buttonVariants({ variant: "outline" }),
+                                            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1"
+                                          ),
+                                          button_next: cn(
+                                            buttonVariants({ variant: "outline" }),
+                                            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1"
+                                          ),
+                                          month_grid: "w-full border-collapse space-y-1",
+                                          weekdays: "flex mt-[20px]",
+                                          weekday: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                                          week: "flex w-full mt-2",
+                                          day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20"),
+                                          selected:
+                                            "bg-[#242628] text-[#FEFEFE] hover:bg-[#242628] hover:text-[#FEFEFE] focus:bg-[#242628]focus:text-[#FEFEFE]",
+                                          today: "bg-accent text-[#0068FA]",
+                                          outside: "text-muted-foreground opacity-50",
+                                          disabled: "text-muted-foreground opacity-50",
+                                          range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                                          hidden: "invisible",
+                                          ...classNames,
+                                        }}
+                                        onSelect={(e: any) => {
+                                          field.onChange(e)
+                                        }}
+                                        startMonth={new Date(moment().subtract(100, 'years').year(), moment().month())}
+                                        endMonth={new Date(moment().year(), moment().month())}
+                                        disabled={[(date) => moment(date).isAfter(moment(), 'day') || moment(date).isBefore(moment().subtract(100, 'year'), 'day')]}
+                                        weekStartsOn={1}
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </TabsContent>
                       </Tabs>
                     )}
